@@ -132,16 +132,25 @@ function startQrLoop() {
   const interval = setInterval(async () => {
     if (loggedIn) return clearInterval(interval)
     try {
-      // Thử canvas trước (Zalo web dùng canvas render QR)
+      // Tự động click "Lấy mã mới" nếu QR hết hạn
+      const refreshBtn = page.locator("button, span, div").filter({ hasText: /Lấy mã mới/i }).first()
+      if (await refreshBtn.isVisible({ timeout: 300 })) {
+        console.log("[QR] Mã hết hạn, đang lấy mã mới...")
+        await refreshBtn.click()
+        await page.waitForTimeout(1500)
+        return
+      }
+
+      // Chụp canvas QR
       const canvas = page.locator("canvas").first()
       if (await canvas.isVisible({ timeout: 500 })) {
         const buf = await canvas.screenshot()
-        // Chỉ update nếu ảnh có nội dung (size > 1KB)
         if (buf && buf.length > 1024) {
           qrBuffer = buf
         }
         return
       }
+
       // Fallback: thử img
       const img = page.locator("img[alt*='QR'], img[alt*='qr']").first()
       if (await img.isVisible({ timeout: 500 })) {
