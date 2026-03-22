@@ -7,26 +7,6 @@ services:
       - "3000:3000"
     environment:
       - PORT=3000
-      - REDIS_HOST=redis
     volumes:
       - ./data/session.json:/app/session.json
       - ./data/logs.json:/app/logs.json
-    depends_on:
-      - redis
-    networks:
-      - zalo-net
-
-  redis:
-    image: redis:7-alpine
-    container_name: zalo-redis
-    restart: unless-stopped
-    volumes:
-      - redis-data:/data
-    networks:
-      - zalo-net
-
-volumes:
-  redis-data:
-
-networks:
-  zalo-net:

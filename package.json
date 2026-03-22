@@ -1,19 +1,14 @@
 {
   "name": "zalo-bot",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "Zalo Bot - Gửi tin nhắn tự động qua Playwright",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
     "dev": "node --watch index.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
-    "bullmq": "^5.70.4",
     "express": "^5.2.1",
-    "ioredis": "^5.10.0",
     "playwright": "^1.58.2"
   }
 }
