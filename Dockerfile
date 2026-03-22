@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 mcr.microsoft.com/playwright:v1.49.0-jammy
+FROM --platform=linux/arm64 mcr.microsoft.com/playwright:v1.49.0-jammy
 
 WORKDIR /app
 
