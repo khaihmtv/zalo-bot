@@ -1,0 +1,41 @@
+{
+  "cookies": [
+    {
+      "name": "_zlang",
+      "value": "vn",
+      "domain": ".zalo.me",
+      "path": "/",
+      "expires": 1774257571.192288,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": [
+    {
+      "origin": "https://chat.zalo.me",
+      "localStorage": [
+        {
+          "name": "sh_mig_scs_sh",
+          "value": "1"
+        },
+        {
+          "name": "sh_mig_d",
+          "value": "24"
+        },
+        {
+          "name": "sh_mig_ver_sh",
+          "value": "1"
+        },
+        {
+          "name": "sh_mig_co",
+          "value": "0"
+        },
+        {
+          "name": "sh_user_ids",
+          "value": "[]"
+        }
+      ]
+    }
+  ]
+}
