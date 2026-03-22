@@ -19,12 +19,13 @@ jobs:
           script: |
             cd ~/zalo-bot
 
-            # Pull code mới nhất từ GitHub
+            # Pull code mới nhất
             git pull origin main
 
-            # Giữ data
             mkdir -p data
-            touch data/session.json data/logs.json
+            touch data/logs.json
+
+            # KHÔNG xóa session.json — giữ nguyên session đã đăng nhập
 
             # Build image mới trực tiếp trên VPS
             docker compose build --no-cache
