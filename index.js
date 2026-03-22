@@ -1,4 +1,4 @@
-/**
+          /**
  * Zalo Bot - Unified Server
  *
  * API:
@@ -70,7 +70,7 @@ async function startBrowser() {
 
   console.log("[Browser] Đang khởi động...")
 
-  browser = await chromium.launch({ headless: true, slowMo: 300 })
+  browser = await chromium.launch({ headless: true, slowMo: 500 })
 
   browser.on("disconnected", async () => {
     console.log("[Browser] Bị ngắt, đang khởi động lại...")
