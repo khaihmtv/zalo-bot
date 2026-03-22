@@ -29,7 +29,7 @@ const QUEUE_NAME = "zaloQueue"
 // ──────────────────────────────────────────────
 // Redis + Queue
 // ──────────────────────────────────────────────
-const redis = new Redis({ maxRetriesPerRequest: null })
+const redis = new Redis({ host: process.env.REDIS_HOST || "redis", port: 6379, maxRetriesPerRequest: null })
 const queue = new Queue(QUEUE_NAME, { connection: redis })
 
 // ──────────────────────────────────────────────
@@ -81,7 +81,17 @@ async function startBrowser() {
     await startBrowser()
   })
 
-  const contextOptions = fs.existsSync(SESSION_FILE) ? { storageState: SESSION_FILE } : {}
+  // Chỉ load session nếu file tồn tại VÀ không rỗng
+  let contextOptions = {}
+  try {
+    if (fs.existsSync(SESSION_FILE)) {
+      const raw = fs.readFileSync(SESSION_FILE, "utf-8").trim()
+      if (raw && raw !== "null" && raw.startsWith("{")) {
+        contextOptions = { storageState: SESSION_FILE }
+        console.log("[Browser] Tìm thấy session cũ, đang load...")
+      }
+    }
+  } catch {}
 
   context = await browser.newContext(contextOptions)
   page = await context.newPage()
