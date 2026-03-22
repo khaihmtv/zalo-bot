@@ -7,6 +7,7 @@ services:
       - "3000:3000"
     environment:
       - PORT=3000
+      - REDIS_HOST=redis
     volumes:
       - ./data/session.json:/app/session.json
       - ./data/logs.json:/app/logs.json

@@ -29,7 +29,7 @@ const QUEUE_NAME = "zaloQueue"
 // ──────────────────────────────────────────────
 // Redis + Queue
 // ──────────────────────────────────────────────
-const redis = new Redis({ host: process.env.REDIS_HOST || "redis", port: 6379, maxRetriesPerRequest: null })
+const redis = new Redis({ host: process.env.REDIS_HOST || "127.0.0.1", port: 6379, maxRetriesPerRequest: null })
 const queue = new Queue(QUEUE_NAME, { connection: redis })
 
 // ──────────────────────────────────────────────
@@ -70,7 +70,16 @@ async function startBrowser() {
 
   console.log("[Browser] Đang khởi động...")
 
-  browser = await chromium.launch({ headless: true, slowMo: 300 })
+  browser = await chromium.launch({
+    headless: true,
+    slowMo: 300,
+    args: [
+      "--disable-gpu",
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-dev-shm-usage",
+    ]
+  })
 
   browser.on("disconnected", async () => {
     console.log("[Browser] Bị ngắt, đang khởi động lại...")
@@ -123,12 +132,23 @@ function startQrLoop() {
   const interval = setInterval(async () => {
     if (loggedIn) return clearInterval(interval)
     try {
-      const qr = page.locator("canvas").first()
-      if (await qr.isVisible()) {
-        qrBuffer = await qr.screenshot()
+      // Thử canvas trước (Zalo web dùng canvas render QR)
+      const canvas = page.locator("canvas").first()
+      if (await canvas.isVisible({ timeout: 500 })) {
+        const buf = await canvas.screenshot()
+        // Chỉ update nếu ảnh có nội dung (size > 1KB)
+        if (buf && buf.length > 1024) {
+          qrBuffer = buf
+        }
+        return
+      }
+      // Fallback: thử img
+      const img = page.locator("img[alt*='QR'], img[alt*='qr']").first()
+      if (await img.isVisible({ timeout: 500 })) {
+        qrBuffer = await img.screenshot()
       }
     } catch {}
-  }, 2000)
+  }, 1000)
 }
 
 function waitForLogin() {
