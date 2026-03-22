@@ -1,0 +1,7 @@
+node_modules
+.git
+.github
+*.zip
+data/
+logs.json
+session.json
