@@ -319,13 +319,70 @@ app.get("/", (req, res) => {
   `)
 })
 
-// QR
+// QR image (raw PNG, cập nhật mỗi lần gọi)
+app.get("/qr-image", async (req, res) => {
+  if (loggedIn) return res.status(200).send("logged_in")
+  if (!qrBuffer) return res.status(204).send()
+  res.setHeader("Content-Type", "image/png")
+  res.setHeader("Cache-Control", "no-store")
+  res.send(qrBuffer)
+})
+
+// QR page - tự động refresh ảnh mỗi 2 giây
 app.get("/qr", async (req, res) => {
   await startBrowser()
-  if (loggedIn) return res.send("<h3>✅ Đã đăng nhập rồi!</h3><a href='/'>Về trang chủ</a>")
-  if (!qrBuffer) return res.send("<h3>⏳ QR đang tạo, thử lại sau 2 giây...</h3><script>setTimeout(()=>location.reload(),2000)</script>")
-  res.setHeader("Content-Type", "image/png")
-  res.send(qrBuffer)
+
+  if (loggedIn) {
+    return res.send("<h3 style=\"font-family:sans-serif;text-align:center;margin-top:80px\">✅ Đã đăng nhập rồi!</h3>")
+  }
+
+  res.send(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8"/>
+      <title>Zalo QR Login</title>
+      <style>
+        body { background: #111; display: flex; flex-direction: column; align-items: center;
+               justify-content: center; height: 100vh; margin: 0; font-family: sans-serif; color: #fff; }
+        #qr-box { background: #fff; padding: 16px; border-radius: 12px; }
+        img { display: block; width: 260px; height: 260px; }
+        p { margin-top: 16px; color: #aaa; font-size: 14px; text-align: center; }
+        #status { margin-top: 8px; font-size: 13px; color: #666; }
+      </style>
+    </head>
+    <body>
+      <div id="qr-box">
+        <img id="qr-img" src="/qr-image?t=0" alt="QR"/>
+      </div>
+      <p>Mở Zalo → Quét mã QR để đăng nhập</p>
+      <div id="status">Đang cập nhật mã QR...</div>
+      <script>
+        let t = 0
+        function refresh() {
+          t++
+          const img = document.getElementById('qr-img')
+          const status = document.getElementById('status')
+
+          fetch('/qr-image?t=' + t)
+            .then(r => {
+              if (r.status === 200 && r.headers.get('content-type') === 'image/png') {
+                img.src = '/qr-image?t=' + t
+                status.textContent = 'QR cập nhật lúc ' + new Date().toLocaleTimeString('vi-VN')
+              } else if (r.status === 200) {
+                // logged_in
+                document.body.innerHTML = '<h2 style="color:#4ade80;font-family:sans-serif">✅ Đăng nhập thành công!</h2>'
+                return
+              }
+            })
+            .catch(() => {})
+          setTimeout(refresh, 2000)
+        }
+        setTimeout(refresh, 2000)
+      </script>
+    </body>
+    </html>
+  `)
 })
 
 // Status
