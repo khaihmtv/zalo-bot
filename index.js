@@ -59,7 +59,7 @@ function writeLog(entry) {
 async function startBrowser() {
   if (browser) return
 
-  console.log("[Browser] Đang khởi động...")
+  console.log("[Browser] Đang khởi động...ss")
 
   browser = await chromium.launch({
     headless: true,
