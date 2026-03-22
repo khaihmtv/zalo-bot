@@ -22,18 +22,21 @@ jobs:
             # Pull code mới nhất
             git pull origin main
 
+            # Xóa package-lock.json cũ (tránh conflict dependencies)
+            rm -f package-lock.json
+
+            # Dọn dẹp docker trước khi build (tránh hết disk)
+            docker system prune -f
+
+            # Giữ data
             mkdir -p data
             touch data/logs.json
-
-            # KHÔNG xóa session.json — giữ nguyên session đã đăng nhập
+            # KHÔNG xóa session.json
 
             # Build image mới trực tiếp trên VPS
             docker compose build --no-cache
 
             # Restart container
             docker compose up -d --force-recreate
-
-            # Dọn image cũ
-            docker image prune -f
 
             echo "✅ Deploy xong!"
