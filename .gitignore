@@ -2,5 +2,4 @@ node_modules/
 *.zip
 data/
 logs.json
-session.json
 # KHÔNG ignore session.json để có thể push lên git khi cần
