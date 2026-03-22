@@ -97,9 +97,9 @@ async function startBrowser() {
   page = await context.newPage()
 
   await page.goto("https://chat.zalo.me", { waitUntil: "domcontentloaded", timeout: 60000 })
-  await page.waitForTimeout(3000)
+  await page.waitForTimeout(5000)
 
-  const isLoggedIn = await page.locator("#contact-search-input").isVisible({ timeout: 10000 }).catch(() => false)
+  const isLoggedIn = await page.locator("#contact-search-input").isVisible({ timeout: 20000 }).catch(() => false)
 
   if (isLoggedIn) {
     loggedIn = true
@@ -156,8 +156,17 @@ async function sendMessage(to, message) {
   }
 
   try {
+    // Đảm bảo trang Zalo vẫn còn sống
+    const stillAlive = await page.locator("#contact-search-input").isVisible({ timeout: 5000 }).catch(() => false)
+    if (!stillAlive) {
+      console.log("[Send] Trang Zalo bị mất, reload...")
+      await page.reload({ waitUntil: "domcontentloaded", timeout: 60000 })
+      await page.waitForTimeout(5000)
+    }
+
     // Bước 1: Tìm kiếm người dùng
     const searchBox = page.locator("#contact-search-input")
+    await searchBox.waitFor({ timeout: 30000 })
     await searchBox.click()
     await searchBox.fill(to)
     await page.waitForTimeout(2000)
@@ -175,7 +184,7 @@ async function sendMessage(to, message) {
     await user.click()
 
     // Bước 3: Gõ và gửi
-    const chatBox = await page.waitForSelector("#richInput", { timeout: 10000 })
+    const chatBox = await page.waitForSelector("#richInput", { timeout: 20000 })
     await chatBox.click()
     await chatBox.fill(message)
     await page.keyboard.press("Enter")

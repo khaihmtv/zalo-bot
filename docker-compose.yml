@@ -1,6 +1,6 @@
 services:
   zalo-bot:
-    image: ghcr.io/${GITHUB_REPOSITORY}:latest
+    build: .
     container_name: zalo-bot
     restart: unless-stopped
     ports:
@@ -8,7 +8,6 @@ services:
     environment:
       - PORT=3000
     volumes:
-      # Giữ session.json và logs.json sống qua các lần redeploy
       - ./data/session.json:/app/session.json
       - ./data/logs.json:/app/logs.json
     depends_on:
