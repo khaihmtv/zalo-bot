@@ -136,11 +136,29 @@ function waitForLogin() {
     try {
       loggedIn = true
       qrBuffer = null
+
+      // Lưu session
       await context.storageState({ path: SESSION_FILE })
-      await closePopupIfAny()
       console.log("[Browser] Đăng nhập thành công ✓ Session đã lưu")
+
+      // Chờ trang chat load hoàn toàn
+      await page.waitForTimeout(3000)
+      await closePopupIfAny()
+
+      // Đảm bảo đang ở đúng trang chat
+      const currentUrl = page.url()
+      if (!currentUrl.includes("chat.zalo.me")) {
+        console.log("[Browser] Đang navigate về trang chat...")
+        await page.goto("https://chat.zalo.me", { waitUntil: "domcontentloaded", timeout: 60000 })
+        await page.waitForTimeout(4000)
+      }
+
+      // Chờ search box xuất hiện để xác nhận trang đã sẵn sàng
+      await page.locator("#contact-search-input").waitFor({ timeout: 30000 })
+      console.log("[Browser] Trang chat sẵn sàng ✓")
+
     } catch (e) {
-      console.error("[Browser] Lỗi lưu session:", e.message)
+      console.error("[Browser] Lỗi sau login:", e.message)
     }
   }).catch(() => {})
 }
@@ -161,9 +179,12 @@ async function sendMessage(to, message) {
     // Đảm bảo trang Zalo vẫn còn sống
     const stillAlive = await page.locator("#contact-search-input").isVisible({ timeout: 5000 }).catch(() => false)
     if (!stillAlive) {
-      console.log("[Send] Trang Zalo bị mất, reload...")
-      await page.reload({ waitUntil: "domcontentloaded", timeout: 60000 })
+      console.log("[Send] Trang Zalo bị mất, navigate lại...")
+      await page.goto("https://chat.zalo.me", { waitUntil: "domcontentloaded", timeout: 60000 })
       await page.waitForTimeout(5000)
+      await closePopupIfAny()
+      // Chờ search box xuất hiện
+      await page.locator("#contact-search-input").waitFor({ timeout: 30000 })
     }
 
     // Bước 1: Tìm kiếm người dùng
