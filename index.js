@@ -133,12 +133,24 @@ function startQrLoop() {
     if (loggedIn) return clearInterval(interval)
     try {
       // Tự động click "Lấy mã mới" nếu QR hết hạn
-      const refreshBtn = page.locator("button, span, div").filter({ hasText: /Lấy mã mới/i }).first()
+      const refreshBtn = page.getByText(/Lấy mã mới/i).first()
       if (await refreshBtn.isVisible({ timeout: 300 })) {
-        console.log("[QR] Mã hết hạn, đang lấy mã mới...")
+        console.log("[QR] Mã hết hạn, đang click Lấy mã mới...")
         await refreshBtn.click()
-        await page.waitForTimeout(1500)
+        await page.waitForTimeout(2000)
         return
+      }
+
+      // Debug: log text của tất cả button trên trang (chỉ log 1 lần/30s)
+      const now = Date.now()
+      if (!global._lastBtnLog || now - global._lastBtnLog > 30000) {
+        global._lastBtnLog = now
+        try {
+          const btns = await page.locator("button").allInnerTexts()
+          console.log("[QR Debug] Buttons trên trang:", btns)
+          const pageText = await page.locator("body").innerText({ timeout: 1000 })
+          if (pageText.includes("mã")) console.log("[QR Debug] Body có chứa 'mã':", pageText.substring(0, 200))
+        } catch {}
       }
 
       // Chụp canvas QR
