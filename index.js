@@ -123,14 +123,16 @@ function startQrLoop() {
   const interval = setInterval(async () => {
     if (loggedIn) return clearInterval(interval)
     try {
-      const qrEl = page.locator("canvas, img[alt*='QR'], img[alt*='qr']").first()
-      if (await qrEl.isVisible()) qrBuffer = await qrEl.screenshot()
+      const qr = page.locator("canvas").first()
+      if (await qr.isVisible()) {
+        qrBuffer = await qr.screenshot()
+      }
     } catch {}
-  }, 1500)
+  }, 2000)
 }
 
 function waitForLogin() {
-  page.waitForURL("https://chat.zalo.me/**").then(async () => {
+  page.waitForURL("https://chat.zalo.me/**", { timeout: 300000 }).then(async () => {
     try {
       loggedIn = true
       qrBuffer = null
