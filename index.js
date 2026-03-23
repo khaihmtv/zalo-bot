@@ -59,7 +59,7 @@ function writeLog(entry) {
 async function startBrowser() {
   if (browser) return
 
-  console.log("[Browser] Đang khởi động..  .")
+  console.log("[Browser] Đang khởi động...")
 
   browser = await chromium.launch({
     headless: true,
@@ -290,20 +290,77 @@ const app = express()
 app.use(express.json())
 
 app.get("/", (req, res) => {
-  res.send(`<html><head><title>Zalo Bot</title><meta charset="utf-8"/></head>
-    <body style="font-family:sans-serif;max-width:640px;margin:40px auto">
-      <h2>🤖 Zalo Bot</h2><hr/>
-      <p>Đăng nhập: <b>${loggedIn ? "✅ Đã đăng nhập" : "❌ Chưa đăng nhập"}</b></p>
-      ${!loggedIn ? '<p><a href="/qr">👉 Quét QR để đăng nhập</a></p>' : ""}
-      <ul>
-        <li><code>GET  /qr</code> — QR đăng nhập</li>
-        <li><code>GET  /status</code> — Trạng thái</li>
-        <li><code>POST /send</code> — Gửi tin <code>{"to":"...","message":"..."}</code></li>
-        <li><code>GET  /logs</code> — Log HTML</li>
-        <li><code>GET  /logsjson</code> — Log JSON</li>
-        <li><code>GET  /logout</code> — Đăng xuất</li>
-      </ul>
-    </body></html>`)
+  const statusColor = loggedIn ? "#22c55e" : "#ef4444"
+  const statusText = loggedIn ? "✅ Đã đăng nhập" : "❌ Chưa đăng nhập"
+  res.send(`<!DOCTYPE html><html><head>
+    <title>Zalo Bot</title>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <style>
+      *{box-sizing:border-box;margin:0;padding:0}
+      body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0f2f5;min-height:100vh;padding:16px}
+      .card{background:#fff;border-radius:16px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,0.08);margin-bottom:16px}
+      h1{font-size:22px;font-weight:700;color:#1a1a1a;display:flex;align-items:center;gap:8px}
+      .badge{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:20px;font-size:14px;font-weight:600;background:${loggedIn?"#dcfce7":"#fee2e2"};color:${loggedIn?"#166534":"#991b1b"};margin-top:12px}
+      .nav-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px}
+      .nav-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px 12px;border-radius:12px;text-decoration:none;font-size:13px;font-weight:600;gap:6px;transition:transform .1s,box-shadow .1s}
+      .nav-btn:active{transform:scale(0.97)}
+      .nav-btn .icon{font-size:24px}
+      .nav-btn.green{background:#dcfce7;color:#166534}
+      .nav-btn.blue{background:#dbeafe;color:#1e40af}
+      .nav-btn.purple{background:#ede9fe;color:#5b21b6}
+      .nav-btn.orange{background:#ffedd5;color:#9a3412}
+      .nav-btn.gray{background:#f3f4f6;color:#374151}
+      .nav-btn.red{background:#fee2e2;color:#991b1b}
+      .api-box{background:#1e1e2e;border-radius:12px;padding:16px;margin-top:4px}
+      .api-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;font-size:13px}
+      .api-row:last-child{margin-bottom:0}
+      .method{background:#3b82f6;color:#fff;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px}
+      .method.post{background:#22c55e}
+      .api-path{color:#e2e8f0;font-family:monospace}
+      .api-desc{color:#94a3b8;font-size:12px;margin-top:2px}
+      h2{font-size:15px;font-weight:600;color:#374151;margin-bottom:12px}
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>🤖 Zalo Bot</h1>
+      <div class="badge">${statusText}</div>
+    </div>
+
+    <div class="card">
+      <h2>📱 Điều hướng nhanh</h2>
+      <div class="nav-grid">
+        <a href="/qr" class="nav-btn green">
+          <span class="icon">📷</span>Quét QR
+        </a>
+        <a href="/logs" class="nav-btn blue">
+          <span class="icon">📋</span>Xem Logs
+        </a>
+        <a href="/status" class="nav-btn purple">
+          <span class="icon">📊</span>Trạng thái
+        </a>
+        <a href="/logsjson" class="nav-btn orange" target="_blank">
+          <span class="icon">📦</span>Logs JSON
+        </a>
+        <a href="/logout" class="nav-btn red" onclick="return confirm('Bạn chắc muốn đăng xuất?')">
+          <span class="icon">🚪</span>Đăng xuất
+        </a>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>🔌 API Endpoints</h2>
+      <div class="api-box">
+        <div class="api-row"><span class="method">GET</span><div><div class="api-path">/qr</div><div class="api-desc">QR đăng nhập Zalo</div></div></div>
+        <div class="api-row"><span class="method">GET</span><div><div class="api-path">/status</div><div class="api-desc">Trạng thái bot + thống kê</div></div></div>
+        <div class="api-row"><span class="method post">POST</span><div><div class="api-path">/send</div><div class="api-desc">{"to":"...","message":"..."}</div></div></div>
+        <div class="api-row"><span class="method">GET</span><div><div class="api-path">/logs</div><div class="api-desc">Lịch sử gửi tin</div></div></div>
+        <div class="api-row"><span class="method">GET</span><div><div class="api-path">/logsjson</div><div class="api-desc">Logs dạng JSON</div></div></div>
+        <div class="api-row"><span class="method">GET</span><div><div class="api-path">/logout</div><div class="api-desc">Đăng xuất + xóa session</div></div></div>
+      </div>
+    </div>
+  </body></html>`)
 })
 
 app.get("/qr-image", (req, res) => {
@@ -373,6 +430,16 @@ app.post("/send", async (req, res) => {
   }
 })
 
+app.get("/logs/delete", (req, res) => {
+  const { ids } = req.query
+  if (!ids) return res.status(400).json({ error: "Thiếu ids" })
+  const idList = ids.split(",").map(Number)
+  let logs = readLogs()
+  logs = logs.filter((_, i) => !idList.includes(i))
+  fs.writeFileSync(LOG_FILE, JSON.stringify(logs, null, 2), "utf-8")
+  res.json({ ok: true, remaining: logs.length })
+})
+
 app.get("/logs", (req, res) => {
   const logs = readLogs()
   const total = logs.length
@@ -380,37 +447,126 @@ app.get("/logs", (req, res) => {
   const warning = logs.filter(l => l.status === "warning").length
   const failed = logs.filter(l => l.status === "failed").length
 
-  const rows = logs.map(l => {
+  const cards = logs.map((l, i) => {
     const icon = l.status === "success" ? "✅" : l.status === "warning" ? "⚠️" : "❌"
+    const border = l.status === "success" ? "#22c55e" : l.status === "warning" ? "#f59e0b" : "#ef4444"
     const bg = l.status === "success" ? "#f0fff4" : l.status === "warning" ? "#fffbeb" : "#fff1f1"
-    return `<tr style="background:${bg}">
-      <td>${icon} ${escHtml(l.status)}</td>
-      <td>${escHtml(l.to)}</td>
-      <td>${escHtml(l.message)}</td>
-      <td style="color:#555;font-size:13px">${escHtml(l.note||"")}</td>
-      <td style="color:#888;font-size:13px;white-space:nowrap">${new Date(l.timestamp).toLocaleString("vi-VN")}</td>
-    </tr>`
+    const time = new Date(l.timestamp).toLocaleString("vi-VN")
+    return `<div class="log-card" data-id="${i}" style="border-left:4px solid ${border};background:${bg}">
+      <div class="log-header">
+        <label class="cb-wrap"><input type="checkbox" class="cb" data-id="${i}"/><span class="cb-box"></span></label>
+        <span class="log-status">${icon} ${escHtml(l.status)}</span>
+        <span class="log-time">${time}</span>
+      </div>
+      <div class="log-body">
+        <div class="log-row"><span class="log-label">Người nhận</span><span class="log-val">${escHtml(l.to)}</span></div>
+        <div class="log-row"><span class="log-label">Nội dung</span><span class="log-val">${escHtml(l.message)}</span></div>
+        <div class="log-row"><span class="log-label">Ghi chú</span><span class="log-val log-note">${escHtml(l.note||"")}</span></div>
+      </div>
+    </div>`
   }).join("")
 
-  res.send(`<html><head><title>Logs</title><meta charset="utf-8"/>
-    <style>body{font-family:sans-serif;margin:32px;background:#f5f5f5}
-    .stats{display:flex;gap:12px;margin:16px 0 24px}.stat{background:#fff;border-radius:8px;padding:12px 20px;box-shadow:0 1px 4px #0001}
-    .stat b{font-size:24px;display:block}.stat span{font-size:13px;color:#666}
-    table{width:100%;border-collapse:collapse;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 4px #0001}
-    th{background:#222;color:#fff;padding:10px 12px;text-align:left;font-size:13px}td{padding:9px 12px;border-bottom:1px solid #f0f0f0}
-    a{color:#0066cc;text-decoration:none;margin-right:12px}</style></head>
-    <body><h2>📋 Zalo Bot — Logs</h2>
-    <div><a href="/">← Trang chủ</a><a href="/logsjson" target="_blank">📦 JSON</a></div>
+  res.send(`<!DOCTYPE html><html><head>
+    <title>Zalo Bot - Logs</title>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <style>
+      *{box-sizing:border-box;margin:0;padding:0}
+      body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0f2f5;min-height:100vh;padding:16px}
+      h1{font-size:20px;font-weight:700;color:#1a1a1a;margin-bottom:12px}
+      .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+      .back{color:#3b82f6;text-decoration:none;font-size:14px;font-weight:600}
+      .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+      .stat{background:#fff;border-radius:12px;padding:10px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,0.06)}
+      .stat b{font-size:20px;display:block;font-weight:700}
+      .stat span{font-size:11px;color:#666}
+      .actions{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+      .btn{padding:9px 14px;border-radius:8px;border:none;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px}
+      .btn-check{background:#dbeafe;color:#1e40af}
+      .btn-uncheck{background:#f3f4f6;color:#374151}
+      .btn-delete{background:#fee2e2;color:#991b1b}
+      .btn:active{opacity:0.75}
+      .log-card{background:#fff;border-radius:12px;padding:14px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,0.06)}
+      .log-card.checked{box-shadow:0 0 0 2px #3b82f6}
+      .log-header{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+      .log-status{font-size:13px;font-weight:600;flex:1}
+      .log-time{font-size:11px;color:#888;white-space:nowrap}
+      .log-body{display:flex;flex-direction:column;gap:6px}
+      .log-row{display:flex;gap:8px;align-items:flex-start}
+      .log-label{font-size:11px;font-weight:700;color:#6b7280;min-width:76px;text-transform:uppercase;padding-top:2px}
+      .log-val{font-size:13px;color:#1a1a1a;flex:1;word-break:break-word}
+      .log-note{color:#6b7280;font-size:12px}
+      .cb-wrap{display:flex;align-items:center;cursor:pointer;flex-shrink:0}
+      .cb{display:none}
+      .cb-box{width:22px;height:22px;border-radius:6px;border:2px solid #d1d5db;background:#fff;display:flex;align-items:center;justify-content:center}
+      .cb:checked+.cb-box{background:#3b82f6;border-color:#3b82f6}
+      .cb:checked+.cb-box::after{content:"✓";color:#fff;font-size:14px;font-weight:700}
+      .empty{text-align:center;color:#9ca3af;padding:40px 0;font-size:15px}
+      .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:10px 22px;border-radius:20px;font-size:13px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:99;white-space:nowrap}
+      .toast.show{opacity:1}
+    </style>
+  </head>
+  <body>
+    <div class="topbar">
+      <a href="/" class="back">← Trang chủ</a>
+      <a href="/logsjson" target="_blank" style="color:#f59e0b;text-decoration:none;font-size:13px;font-weight:600">📦 JSON</a>
+    </div>
+
+    <h1>📋 Lịch sử gửi tin</h1>
+
     <div class="stats">
       <div class="stat"><b>${total}</b><span>Tổng</span></div>
-      <div class="stat" style="border-top:3px solid #22c55e"><b>${success}</b><span>✅ Thành công</span></div>
-      <div class="stat" style="border-top:3px solid #f59e0b"><b>${warning}</b><span>⚠️ Warning</span></div>
-      <div class="stat" style="border-top:3px solid #ef4444"><b>${failed}</b><span>❌ Thất bại</span></div>
+      <div class="stat" style="border-top:3px solid #22c55e"><b>${success}</b><span>✅ OK</span></div>
+      <div class="stat" style="border-top:3px solid #f59e0b"><b>${warning}</b><span>⚠️ Warn</span></div>
+      <div class="stat" style="border-top:3px solid #ef4444"><b>${failed}</b><span>❌ Lỗi</span></div>
     </div>
-    ${logs.length === 0 ? "<p style='color:#999'>Chưa có log nào.</p>" :
-      `<table><thead><tr><th>Trạng thái</th><th>Người nhận</th><th>Nội dung</th><th>Ghi chú</th><th>Thời gian</th></tr></thead>
-      <tbody>${rows}</tbody></table>`}
-    </body></html>`)
+
+    <div class="actions">
+      <button class="btn btn-check" onclick="checkAll()">☑️ Chọn tất cả</button>
+      <button class="btn btn-uncheck" onclick="uncheckAll()">⬜ Bỏ chọn</button>
+      <button class="btn btn-delete" onclick="deleteChecked()">🗑️ Xóa đã chọn</button>
+    </div>
+
+    <div id="log-list">
+      ${logs.length === 0 ? '<div class="empty">Chưa có log nào 🎉</div>' : cards}
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+      function showToast(msg){
+        const t=document.getElementById("toast")
+        t.textContent=msg;t.classList.add("show")
+        setTimeout(()=>t.classList.remove("show"),2500)
+      }
+      document.querySelectorAll(".cb").forEach(cb=>{
+        cb.addEventListener("change",()=>cb.closest(".log-card").classList.toggle("checked",cb.checked))
+      })
+      function checkAll(){
+        document.querySelectorAll(".cb").forEach(cb=>{cb.checked=true;cb.closest(".log-card").classList.add("checked")})
+        showToast("Đã chọn tất cả")
+      }
+      function uncheckAll(){
+        document.querySelectorAll(".cb").forEach(cb=>{cb.checked=false;cb.closest(".log-card").classList.remove("checked")})
+        showToast("Đã bỏ chọn")
+      }
+      function deleteChecked(){
+        const checked=[...document.querySelectorAll(".cb:checked")].map(cb=>cb.dataset.id)
+        if(!checked.length){showToast("Chưa chọn log nào");return}
+        if(!confirm("Xóa "+checked.length+" log đã chọn?"))return
+        fetch("/logs/delete?ids="+checked.join(","))
+          .then(r=>r.json())
+          .then(()=>{
+            checked.forEach(id=>{
+              const c=document.querySelector('.log-card[data-id="'+id+'"]')
+              if(c)c.remove()
+            })
+            showToast("Đã xóa "+checked.length+" log")
+          })
+          .catch(()=>showToast("Lỗi khi xóa"))
+      }
+    </script>
+  </body></html>`)
 })
 
 app.get("/logsjson", (req, res) => {
